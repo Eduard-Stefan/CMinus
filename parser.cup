@@ -13,6 +13,8 @@ import java.io.FileInputStream;
 
 parser code {:
   protected Lexer lexer;
+  protected Tree tree;
+  public Tree getTree() { return tree; }
 :}
 
 /* define how to connect to the scanner! */
@@ -35,35 +37,35 @@ terminal            ELSE, IF, INT, RETURN, VOID, WHILE, PLUS, MINUS, TIMES, DIVI
 terminal Integer    NUM;
 
 /* Non terminals */
-non terminal program;
-non terminal declaration_list;
-non terminal declaration;
-non terminal var_declaration;
-non terminal type_specifier;
-non terminal fun_declaration;
-non terminal params;
-non terminal param_list;
-non terminal param;
-non terminal compound_stmt;
-non terminal local_declarations;
-non terminal statement_list;
-non terminal statement;
-non terminal expression_stmt;
-non terminal selection_stmt;
-non terminal iteration_stmt;
-non terminal return_stmt;
-non terminal expression;
-non terminal var;
-non terminal simple_expression;
-non terminal relop;
-non terminal additive_expression;
-non terminal addop;
-non terminal term;
-non terminal mulop;
-non terminal factor;
-non terminal call;
-non terminal args;
-non terminal arg_list;
+non terminal Tree program;
+non terminal Node declaration_list;
+non terminal Node declaration;
+non terminal Node var_declaration;
+non terminal Node type_specifier;
+non terminal Node fun_declaration;
+non terminal Node params;
+non terminal Node param_list;
+non terminal Node param;
+non terminal Node compound_stmt;
+non terminal Node local_declarations;
+non terminal Node statement_list;
+non terminal Node statement;
+non terminal Node expression_stmt;
+non terminal Node selection_stmt;
+non terminal Node iteration_stmt;
+non terminal Node return_stmt;
+non terminal Node expression;
+non terminal Node var;
+non terminal Node simple_expression;
+non terminal Node relop;
+non terminal Node additive_expression;
+non terminal Node addop;
+non terminal Node term;
+non terminal Node mulop;
+non terminal Node factor;
+non terminal Node call;
+non terminal Node args;
+non terminal Node arg_list;
 
 /* Precedences */
 precedence left PLUS, MINUS;
@@ -71,94 +73,448 @@ precedence left TIMES, DIVIDE;
 precedence left ELSE;
 
 /* The grammar rules */
-program             ::= declaration_list										{: System.out.println("program"); :}
+program             ::= declaration_list:dl
+						{:
+							System.out.println("program");
+							tree = new Tree();
+  							tree.setRoot(new Node("program"));
+   							tree.getRoot().addChild(dl);
+   							RESULT = tree;
+					    :}
 					  ;
-declaration_list    ::= declaration_list declaration							{: System.out.println("declaration_list (declaration_list declaration)"); :}
-					  | declaration												{: System.out.println("declaration_list (declaration)"); :}
+
+declaration_list    ::= declaration_list:dl declaration:d
+						{:
+							System.out.println("declaration_list (declaration_list declaration)");
+							Node node = dl;        					
+        					node.addChild(d);
+        					RESULT = node;
+						:}
+					  | declaration:d
+						{:
+							System.out.println("declaration_list (declaration)");
+							Node node = new Node("declaration_list");
+        					node.addChild(d);
+        					RESULT = node;
+						:}
 					  ;
-declaration         ::= var_declaration											{: System.out.println("declaration (var_declaration)"); :}
-					  | fun_declaration											{: System.out.println("declaration (fun_declaration)"); :}
+
+declaration         ::= var_declaration:vd
+						{:
+							System.out.println("declaration (var_declaration)");
+							Node node = new Node("declaration");
+        					node.addChild(vd);
+        					RESULT = node;
+						:}
+					  | fun_declaration:fd
+					  	{:
+							System.out.println("declaration (fun_declaration)");
+							Node node = new Node("declaration");
+        					node.addChild(fd);
+        					RESULT = node;
+						:}
 					  ;
-var_declaration     ::= type_specifier ID SEMI									{: System.out.println("var_declaration (type_specifier ID SEMI)"); :}
-					  | type_specifier ID LBRACKET NUM RBRACKET SEMI			{: System.out.println("var_declaration (type_specifier ID LBRACKET NUM RBRACKET SEMI)"); :}
+
+var_declaration     ::= type_specifier:ts ID SEMI
+						{:
+							System.out.println("var_declaration (type_specifier ID SEMI)");
+							Node node = new Node("var_declaration");
+        					node.addChild(ts);
+        					RESULT = node;
+						:}
+					  | type_specifier:ts ID LBRACKET NUM RBRACKET SEMI
+					  	{:
+							System.out.println("var_declaration (type_specifier ID LBRACKET NUM RBRACKET SEMI)");
+							Node node = new Node("var_declaration");
+        					node.addChild(ts);
+        					RESULT = node;
+						:}
 					  ;
-type_specifier      ::= INT														{: System.out.println("type_specifier (INT)"); :}
-					  | VOID													{: System.out.println("type_specifier (VOID)"); :}
+
+type_specifier      ::= INT
+						{:
+							System.out.println("type_specifier (INT)");
+							RESULT = new Node("type_specifier (INT)");
+						:}
+					  | VOID
+					  	{:
+							System.out.println("type_specifier (VOID)");
+							RESULT = new Node("type_specifier (VOID)");
+						:}
 					  ;
-fun_declaration     ::= type_specifier ID LPAREN params RPAREN compound_stmt	{: System.out.println("fun_declaration (type_specifier ID LPAREN params RPAREN compound_stmt)"); :}
+
+fun_declaration     ::= type_specifier:ts ID LPAREN params:p RPAREN compound_stmt:cs
+						{:
+							System.out.println("fun_declaration (type_specifier ID LPAREN params RPAREN compound_stmt)");
+							Node node = new Node("fun_declaration");
+        					node.addChild(ts);
+        					node.addChild(p);
+        					node.addChild(cs);
+        					RESULT = node;
+						:}
 					  ;
-params              ::= param_list												{: System.out.println("params (param_list)"); :}
-					  | VOID													{: System.out.println("params (VOID)"); :}
+
+params              ::= param_list:pl
+						{:
+							System.out.println("params (param_list)");
+							Node node = new Node("params");
+        					node.addChild(pl);
+        					RESULT = node;
+						:}
+					  | VOID
+					  	{:
+							System.out.println("params (VOID)");
+							RESULT = new Node("params (VOID)");
+						:}
 					  ;
-param_list          ::= param_list COMMA param									{: System.out.println("param_list (param_list COMMA param)"); :}
-					  | param													{: System.out.println("param_list (param)"); :}
+
+param_list          ::= param_list:pl COMMA param:p
+						{:
+							System.out.println("param_list (param_list COMMA param)");
+							Node node = pl;      					
+        					node.addChild(p);
+        					RESULT = node;
+						:}
+					  | param:p
+					  	{:
+							System.out.println("param_list (param)");
+							Node node = new Node("param_list");
+        					node.addChild(p);
+        					RESULT = node;
+						:}
 					  ;
-param               ::= type_specifier ID										{: System.out.println("param (type_specifier ID)"); :}
-					  | type_specifier ID LBRACKET RBRACKET						{: System.out.println("param (type_specifier ID LBRACKET RBRACKET)"); :}
+
+param               ::= type_specifier:ts ID
+						{:
+							System.out.println("param (type_specifier ID)");
+							Node node = new Node("param");
+        					node.addChild(ts);
+        					RESULT = node;
+						:}
+					  | type_specifier:ts ID LBRACKET RBRACKET
+					  	{:
+							System.out.println("param (type_specifier ID LBRACKET RBRACKET)");
+							Node node = new Node("param");
+        					node.addChild(ts);
+        					RESULT = node;
+						:}
 					  ;
-compound_stmt       ::= LBRACE local_declarations statement_list RBRACE			{: System.out.println("compound_stmt (LBRACE local_declarations statement_list RBRACE)"); :}
+
+compound_stmt       ::= LBRACE local_declarations:ld statement_list:sl RBRACE
+						{:
+							System.out.println("compound_stmt (LBRACE local_declarations statement_list RBRACE)");
+							Node node = new Node("compound_stmt");
+        					node.addChild(ld);
+        					node.addChild(sl);
+        					RESULT = node;
+						:}
 					  ;
-local_declarations  ::= local_declarations var_declaration						{: System.out.println("local_declarations (local_declarations var_declaration)"); :}
-					  | /* empty */												{: System.out.println("local_declarations (empty)"); :}
+
+local_declarations  ::= local_declarations:ld var_declaration:vd
+						{:
+							System.out.println("local_declarations (local_declarations var_declaration)");
+							Node node = ld;
+        					node.addChild(vd);
+        					RESULT = node;
+						:}
+					  | /* empty */
+					  	{:
+							System.out.println("local_declarations (empty)");
+							RESULT = new Node("local_declarations");
+						:}
 					  ;
-statement_list      ::= statement_list statement								{: System.out.println("statement_list (statement_list statement)"); :}
-					  | /* empty */												{: System.out.println("statement_list (empty)"); :}
+
+statement_list      ::= statement_list:sl statement:s
+						{:
+							System.out.println("statement_list (statement_list statement)");
+							Node node = sl;
+        					node.addChild(s);
+        					RESULT = node;
+						:}
+					  | /* empty */
+					  	{:
+							System.out.println("statement_list (empty)");
+							RESULT = new Node("statement_list (empty)");
+						:}
 					  ;
-statement           ::= expression_stmt											{: System.out.println("statement (expression_stmt)"); :}
-					  | compound_stmt											{: System.out.println("statement (compound_stmt)"); :}
-					  | selection_stmt											{: System.out.println("statement (selection_stmt)"); :}
-					  | iteration_stmt											{: System.out.println("statement (iteration_stmt)"); :}
-					  | return_stmt												{: System.out.println("statement (return_stmt)"); :}
+
+statement           ::= expression_stmt:es
+						{:
+							System.out.println("statement (expression_stmt)");
+							RESULT = es;
+						:}
+					  | compound_stmt:cs
+					  	{:
+							System.out.println("statement (compound_stmt)");
+							RESULT = cs;
+						:}
+					  | selection_stmt:ss
+					  	{:
+							System.out.println("statement (selection_stmt)");
+							RESULT = ss;
+						:}
+					  | iteration_stmt:is
+					  	{:
+							System.out.println("statement (iteration_stmt)");
+							RESULT = is;
+						:}
+					  | return_stmt:rs
+					  	{:
+							System.out.println("statement (return_stmt)");
+							RESULT = rs;
+						:}
 					  ;
-expression_stmt     ::= expression SEMI											{: System.out.println("expression_stmt (expression SEMI)"); :}
-					  | SEMI													{: System.out.println("expression_stmt (SEMI)"); :}
+
+expression_stmt     ::= expression:e SEMI
+						{:
+							System.out.println("expression_stmt (expression SEMI)");
+							Node node = new Node("expression_stmt");
+        					node.addChild(e);
+        					RESULT = node;
+						:}
+					  | SEMI
+					  	{:
+							System.out.println("expression_stmt (SEMI)");
+        					RESULT = new Node("expression_stmt");
+						:}
 					  ;
-selection_stmt      ::= IF LPAREN expression RPAREN statement					{: System.out.println("selection_stmt (IF LPAREN expression RPAREN statement)"); :}
-					  | IF LPAREN expression RPAREN statement ELSE statement	{: System.out.println("selection_stmt (IF LPAREN expression RPAREN statement ELSE statement)"); :}
+
+selection_stmt      ::= IF LPAREN expression:e RPAREN statement:s
+						{:
+							System.out.println("selection_stmt (IF LPAREN expression RPAREN statement)");
+							Node node = new Node("selection_stmt");
+        					node.addChild(e);
+        					node.addChild(s);
+        					RESULT = node;
+						:}
+					  | IF LPAREN expression:e RPAREN statement:s1 ELSE statement:s2
+					  	{:
+							System.out.println("selection_stmt (IF LPAREN expression RPAREN statement ELSE statement)");
+							Node node = new Node("selection_stmt");
+        					node.addChild(e);
+        					node.addChild(s1);
+        					node.addChild(s2);
+        					RESULT = node;
+						:}
 					  ;
-iteration_stmt      ::= WHILE LPAREN expression RPAREN statement				{: System.out.println("iteration_stmt (WHILE LPAREN expression RPAREN statement)"); :}
+
+iteration_stmt      ::= WHILE LPAREN expression:e RPAREN statement:s
+						{:
+							System.out.println("iteration_stmt (WHILE LPAREN expression RPAREN statement)");
+							Node node = new Node("iteration_stmt");
+        					node.addChild(e);
+        					node.addChild(s);
+        					RESULT = node;
+						:}
 					  ;
-return_stmt         ::= RETURN SEMI												{: System.out.println("return_stmt (RETURN SEMI)"); :}
-					  | RETURN expression SEMI									{: System.out.println("return_stmt (RETURN expression SEMI)"); :}
+
+return_stmt         ::= RETURN SEMI
+						{:
+							System.out.println("return_stmt (RETURN SEMI)");
+							Node node = new Node("return_stmt");
+        					RESULT = node;
+						:}
+					  | RETURN expression:e SEMI
+					  	{:
+							System.out.println("return_stmt (RETURN expression SEMI)");
+							Node node = new Node("return_stmt");
+        					node.addChild(e);
+        					RESULT = node;
+						:}
 					  ;
-expression          ::= var ASSIGN expression									{: System.out.println("expression (var ASSIGN expression)"); :}
-					  | simple_expression										{: System.out.println("expression (simple_expression)"); :}
+
+expression          ::= var:v ASSIGN expression:e
+						{:
+							System.out.println("expression (var ASSIGN expression)");
+							Node node = new Node("expression");
+        					node.addChild(v);
+        					node.addChild(e);
+        					RESULT = node;
+						:}
+					  | simple_expression:se
+					  	{:
+							System.out.println("expression (simple_expression)");
+							RESULT = se;
+						:}
 					  ;
-var                 ::= ID														{: System.out.println("var (ID)"); :}
-					  | ID LBRACKET expression RBRACKET							{: System.out.println("var (ID LBRACKET expression RBRACKET)"); :}
+
+var                 ::= ID
+						{:
+							System.out.println("var (ID)");
+							Node node = new Node("var");
+        					RESULT = node;
+						:}
+					  | ID LBRACKET expression:e RBRACKET
+					  	{:
+							System.out.println("var (ID LBRACKET expression RBRACKET)");
+							Node node = new Node("var");
+        					node.addChild(e);
+        					RESULT = node;
+						:}
 					  ;
-simple_expression   ::= additive_expression relop additive_expression			{: System.out.println("simple_expression (additive_expression relop additive_expression)"); :}
-					  | additive_expression										{: System.out.println("simple_expression (additive_expression)"); :}
+
+simple_expression   ::= additive_expression:ae1 relop:r additive_expression:ae2
+						{:
+							System.out.println("simple_expression (additive_expression relop additive_expression)");
+							Node node = new Node("simple_expression");
+        					node.addChild(ae1);
+        					node.addChild(r);
+        					node.addChild(ae2);
+        					RESULT = node;
+						:}
+					  | additive_expression:ae
+					  	{:
+							System.out.println("simple_expression (additive_expression)");
+							RESULT = ae;
+						:}
 					  ;
-relop               ::= LE														{: System.out.println("relop (LE)"); :}
-					  | LT														{: System.out.println("relop (LT)"); :}
-					  | GT														{: System.out.println("relop (GT)"); :}
-					  | GE														{: System.out.println("relop (GE)"); :}
-					  | EQ														{: System.out.println("relop (EQ)"); :}
-					  | NE														{: System.out.println("relop (NE)"); :}
+
+relop               ::= LE
+						{:
+							System.out.println("relop (LE)");
+							RESULT = new Node("relop (LE)");
+						:}
+					  | LT
+					  	{:
+							System.out.println("relop (LT)");
+							RESULT = new Node("relop (LT)");
+						:}
+					  | GT
+					  	{:
+							System.out.println("relop (GT)");
+							RESULT = new Node("relop (GT)");
+						:}
+					  | GE
+					  	{:
+							System.out.println("relop (GE)");
+							RESULT = new Node("relop (GE)");
+						:}
+					  | EQ
+					  	{:
+							System.out.println("relop (EQ)");
+							RESULT = new Node("relop (EQ)");
+						:}
+					  | NE
+					  	{:
+							System.out.println("relop (NE)");
+							RESULT = new Node("relop (NE)");
+						:}
 					  ;
-additive_expression ::= additive_expression addop term							{: System.out.println("additive_expression (additive_expression addop term)"); :}
-					  | term													{: System.out.println("additive_expression (term)"); :}
+
+additive_expression ::= additive_expression:ae addop:a term:t
+						{:
+							System.out.println("additive_expression (additive_expression addop term)");
+							Node node = ae;
+        					node.addChild(a);
+        					node.addChild(t);
+        					RESULT = node;
+						:}
+					  | term:t
+					  	{:
+							System.out.println("additive_expression (term)");
+							RESULT = t;
+						:}
 					  ;
-addop               ::= PLUS													{: System.out.println("addop (PLUS)"); :}
-					  | MINUS													{: System.out.println("addop (MINUS)"); :}
+
+addop               ::= PLUS
+						{:
+							System.out.println("addop (PLUS)");
+							RESULT = new Node("addop (PLUS)");
+						:}
+					  | MINUS
+					  	{:
+							System.out.println("addop (MINUS)");
+							RESULT = new Node("addop (MINUS)");
+						:}
 					  ;
-term                ::= term mulop factor										{: System.out.println("term (term mulop factor)"); :}
-					  | factor													{: System.out.println("term (factor)"); :}
+
+term                ::= term:t mulop:m factor:f
+						{:
+							System.out.println("term (term mulop factor)");
+							Node node = t;
+        					node.addChild(m);
+        					node.addChild(f);
+        					RESULT = node;
+						:}
+					  | factor:f
+					  	{:
+							System.out.println("term (factor)");
+							RESULT = f;
+						:}
 					  ;
-mulop               ::= TIMES													{: System.out.println("mulop (TIMES)"); :}
-					  | DIVIDE													{: System.out.println("mulop (DIVIDE)"); :}
+
+mulop               ::= TIMES
+						{:
+							System.out.println("mulop (TIMES)");
+							RESULT = new Node("mulop (TIMES)");
+						:}
+					  | DIVIDE
+					  	{:
+							System.out.println("mulop (DIVIDE)");
+							RESULT = new Node("mulop (DIVIDE)");
+						:}
 					  ;
-factor              ::= LPAREN expression RPAREN								{: System.out.println("factor (LPAREN expression RPAREN)"); :}
-					  | var														{: System.out.println("factor (var)"); :}
-					  | call													{: System.out.println("factor (call)"); :}
-					  | NUM														{: System.out.println("factor (NUM)"); :}
+
+factor              ::= LPAREN expression:e RPAREN
+						{:
+							System.out.println("factor (LPAREN expression RPAREN)");
+							Node node = new Node("factor");
+        					node.addChild(e);
+        					RESULT = node;
+						:}
+					  | var:v
+					  	{:
+							System.out.println("factor (var)");
+							RESULT = v;
+						:}
+					  | call:c
+					  	{:
+							System.out.println("factor (call)");
+							RESULT = c;
+						:}
+					  | NUM
+					  	{:
+							System.out.println("factor (NUM)");
+							Node node = new Node("factor");
+        					RESULT = node;
+						:}
 					  ;
-call                ::= ID LPAREN args RPAREN									{: System.out.println("call (ID LPAREN args RPAREN)"); :}
+
+call                ::= ID LPAREN args:a RPAREN
+						{:
+							System.out.println("call (ID LPAREN args RPAREN)");
+							Node node = new Node("call");
+        					node.addChild(a);
+        					RESULT = node;
+						:}
 					  ;
-args                ::= arg_list 												{: System.out.println("args (arg_list)"); :}
-					  | /* empty */												{: System.out.println("args (empty)"); :}
+
+args                ::= arg_list:al
+						{:
+							System.out.println("args (arg_list)");
+							Node node = new Node("args");
+        					node.addChild(al);
+        					RESULT = node;
+						:}
+					  | /* empty */
+					  	{:
+							System.out.println("args (empty)");
+							RESULT = new Node("args (empty)");
+						:}
 					  ;
-arg_list            ::= arg_list COMMA expression 								{: System.out.println("arg_list (arg_list COMMA expression)"); :}
-					  | expression												{: System.out.println("arg_list (expression)"); :}
+
+arg_list            ::= arg_list:al COMMA expression:e
+						{:
+							System.out.println("arg_list (arg_list COMMA expression)");
+							Node node = al;
+        					node.addChild(e);
+        					RESULT = node;
+						:}
+					  | expression:e
+					  	{:
+							System.out.println("arg_list (expression)");
+							Node node = new Node("arg_list");
+        					node.addChild(e);
+        					RESULT = node;
+						:}
 					  ;
