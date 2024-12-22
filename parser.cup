@@ -33,7 +33,8 @@ init with {:
 scan with {: return lexer.next_token(); :};
 
 /* Terminals (tokens returned by the scanner). */
-terminal            ELSE, IF, INT, RETURN, VOID, WHILE, PLUS, MINUS, TIMES, DIVIDE, LT, LE, GT, GE, EQ, NE, ASSIGN, SEMI, COMMA, LPAREN, RPAREN, LBRACE, RBRACE, LBRACKET, RBRACKET, ID;
+terminal            ELSE, IF, INT, RETURN, VOID, WHILE, PLUS, MINUS, TIMES, DIVIDE, LT, LE, GT, GE, EQ, NE, ASSIGN, SEMI, COMMA, LPAREN, RPAREN, LBRACE, RBRACE, LBRACKET, RBRACKET;
+terminal String     ID;
 terminal Integer    NUM;
 
 /* Non terminals */
@@ -115,17 +116,17 @@ declaration         ::= var_declaration:vd
 						:}
 					  ;
 
-var_declaration     ::= type_specifier:ts ID SEMI
+var_declaration     ::= type_specifier:ts ID:id SEMI
 						{:
 							System.out.println("var_declaration (type_specifier ID SEMI)");
-							Node node = new Node("var_declaration");
+							Node node = new Node("var_declaration", id);
         					node.addChild(ts);
         					RESULT = node;
 						:}
-					  | type_specifier:ts ID LBRACKET NUM RBRACKET SEMI
+					  | type_specifier:ts ID:id LBRACKET NUM:n RBRACKET SEMI
 					  	{:
 							System.out.println("var_declaration (type_specifier ID LBRACKET NUM RBRACKET SEMI)");
-							Node node = new Node("var_declaration");
+							Node node = new Node("var_declaration", id);
         					node.addChild(ts);
         					RESULT = node;
 						:}
@@ -134,19 +135,19 @@ var_declaration     ::= type_specifier:ts ID SEMI
 type_specifier      ::= INT
 						{:
 							System.out.println("type_specifier (INT)");
-							RESULT = new Node("type_specifier (INT)");
+							RESULT = new Node("type_specifier (INT)", "int");
 						:}
 					  | VOID
 					  	{:
 							System.out.println("type_specifier (VOID)");
-							RESULT = new Node("type_specifier (VOID)");
+							RESULT = new Node("type_specifier (VOID)", "void");
 						:}
 					  ;
 
-fun_declaration     ::= type_specifier:ts ID LPAREN params:p RPAREN compound_stmt:cs
+fun_declaration     ::= type_specifier:ts ID:id LPAREN params:p RPAREN compound_stmt:cs
 						{:
 							System.out.println("fun_declaration (type_specifier ID LPAREN params RPAREN compound_stmt)");
-							Node node = new Node("fun_declaration");
+							Node node = new Node("fun_declaration", id);
         					node.addChild(ts);
         					node.addChild(p);
         					node.addChild(cs);
@@ -164,7 +165,7 @@ params              ::= param_list:pl
 					  | VOID
 					  	{:
 							System.out.println("params (VOID)");
-							RESULT = new Node("params (VOID)");
+							RESULT = new Node("params (VOID)", "void");
 						:}
 					  ;
 
@@ -184,17 +185,17 @@ param_list          ::= param_list:pl COMMA param:p
 						:}
 					  ;
 
-param               ::= type_specifier:ts ID
+param               ::= type_specifier:ts ID:id
 						{:
 							System.out.println("param (type_specifier ID)");
-							Node node = new Node("param");
+							Node node = new Node("param", id);
         					node.addChild(ts);
         					RESULT = node;
 						:}
-					  | type_specifier:ts ID LBRACKET RBRACKET
+					  | type_specifier:ts ID:id LBRACKET RBRACKET
 					  	{:
 							System.out.println("param (type_specifier ID LBRACKET RBRACKET)");
-							Node node = new Node("param");
+							Node node = new Node("param", id);
         					node.addChild(ts);
         					RESULT = node;
 						:}
@@ -338,16 +339,16 @@ expression          ::= var:v ASSIGN expression:e
 						:}
 					  ;
 
-var                 ::= ID
+var                 ::= ID:id
 						{:
 							System.out.println("var (ID)");
-							Node node = new Node("var");
+							Node node = new Node("var", id);
         					RESULT = node;
 						:}
-					  | ID LBRACKET expression:e RBRACKET
+					  | ID:id LBRACKET expression:e RBRACKET
 					  	{:
 							System.out.println("var (ID LBRACKET expression RBRACKET)");
-							Node node = new Node("var");
+							Node node = new Node("var", id);
         					node.addChild(e);
         					RESULT = node;
 						:}
@@ -472,18 +473,18 @@ factor              ::= LPAREN expression:e RPAREN
 							System.out.println("factor (call)");
 							RESULT = c;
 						:}
-					  | NUM
+					  | NUM:n
 					  	{:
 							System.out.println("factor (NUM)");
-							Node node = new Node("factor");
+							Node node = new Node("factor", "" + n);
         					RESULT = node;
 						:}
 					  ;
 
-call                ::= ID LPAREN args:a RPAREN
+call                ::= ID:id LPAREN args:a RPAREN
 						{:
 							System.out.println("call (ID LPAREN args RPAREN)");
-							Node node = new Node("call");
+							Node node = new Node("call", id);
         					node.addChild(a);
         					RESULT = node;
 						:}
